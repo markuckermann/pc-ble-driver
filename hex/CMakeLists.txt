@@ -30,6 +30,10 @@ endif()
 
 set(PCA_BLACKLIST "pca10036;")
 
+if(NOT DEFINED UART_SPEEDS)
+    set(UART_SPEEDS "1m")
+endif()
+
 if(NOT MERGEHEX)
     message(FATAL_ERROR "mergehex not found, not able to merge connectivity firmware with SoftDevice.")
 endif()
@@ -110,6 +114,10 @@ function(nrf_create_connectivity_compile_targets)
         message(FATAL_ERROR "nrf_create_connectivity_compile_targets requires a SDK_VERSION argument.")
     endif()
 
+    if(NOT DEFINED nrf_create_connectivity_compile_targets_UART_SPEEDS)
+        message(FATAL_ERROR "nrf_create_connectivity_compile_targets requires a UART_SPEEDS argument.")
+    endif()
+
     set(SDK_ROOT "${nrf_create_connectivity_compile_targets_SDK_ROOT}")
     message(STATUS "SDK_ROOT:" ${SDK_ROOT})
     set(SDK_VERSION ${nrf_create_connectivity_compile_targets_SDK_VERSION})
@@ -139,8 +147,9 @@ function(nrf_create_connectivity_compile_targets)
                 endif()
 
                 if(TRANSPORT STREQUAL "uart")
-                    list(APPEND TRANSPORTS "115k2")
-                    list(APPEND TRANSPORTS "1m")
+                    foreach(UART_SPEED ${UART_SPEEDS})
+                        list(APPEND TRANSPORTS "${UART_SPEED}")
+                    endforeach()
                 endif()
 
                 foreach(TRANSPORT ${TRANSPORTS})
@@ -275,6 +284,7 @@ nrf_create_connectivity_compile_targets(
     SDK_ROOT "${SDK_PATH}"
     PROJECT_DIRECTORY "examples/ble_central_and_peripheral/ble_connectivity"
     VERSION "${CONNECTIVITY_VERSION}"
+    UART_SPEEDS "${UART_SPEEDS}"
 )
 
 nrf_prepare_sdk(
@@ -290,6 +300,7 @@ nrf_create_connectivity_compile_targets(
     SDK_ROOT "${SDK_PATH}"
     PROJECT_DIRECTORY "examples/connectivity/ble_connectivity"
     VERSION "${CONNECTIVITY_VERSION}"
+    UART_SPEEDS "${UART_SPEEDS}"
 )
 
 # Add a connectivity compilation target that depends on the last target added to CONNECTIVITY_BUILD_TARGETS
